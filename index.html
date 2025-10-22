@@ -134,19 +134,20 @@ header h1{margin:0;font-size:1.3rem;font-weight:800;color:var(--accent-2);}
 <script>
 // محصولات با دسته‌بندی دقیق
 const products=[
-  {name:"بستنی سنتی بدون مغز",price:220000,cat:"بستنی سنتی"},
-  {name:"بستنی سنتی مغزدار",price:260000,cat:"بستنی سنتی"},
-  {name:"بستنی سنتی لیوانی",price:40000,cat:"بستنی سنتی"},
-  {name:"بستنی سنتی حصیری",price:40000,cat:"بستنی سنتی"},
-  {name:"بستنی اسکوپی",price:25000,cat:"بستنی سنتی"},
-  {name:"بستنی قیفی وانیلی",price:35000,cat:"بستنی سنتی"},
-  {name:"بستنی قیفی وانیل کاکائو",price:40000,cat:"بستنی سنتی"},
-  {name:"بستنی دستگاهی لیوان بزرگ",price:50000,cat:"بستنی سنتی"},
-  {name:"بستنی دستگاهی لیوان کوچک",price:40000,cat:"بستنی سنتی"},
+  {name:"بستنی سنتی بدون مغز",price:220000,cat:"بستنی"},
+  {name:"بستنی سنتی مغزدار",price:260000,cat:"بستنی"},
+  {name:"بستنی سنتی لیوانی",price:40000,cat:"بستنی"},
+  {name:"بستنی سنتی حصیری",price:40000,cat:"بستنی"},
+  {name:"بستنی اسکوپی",price:25000,cat:"بستنی"},
+  {name:"بستنی قیفی وانیلی",price:35000,cat:"بستنی"},
+  {name:"بستنی قیفی وانیل کاکائو",price:40000,cat:"بستنی"},
+  {name:"بستنی دستگاهی لیوان بزرگ",price:50000,cat:"بستنی"},
+  {name:"بستنی دستگاهی لیوان کوچک",price:40000,cat:"بستنی"},
+  {name:"طالبی بستنی",price:70000,cat:"بستنی"},
+  {name:"فالوده بستنی",price:70000,cat:"بستنی"},
+  {name:"آب هویج بستنی",price:60000,cat:"بستنی"},  
   
   {name:"فالوده",price:50000,cat:"فالوده"},
-  {name:"فالوده بستنی",price:70000,cat:"فالوده"},
-  {name:"طالبی بستنی",price:70000,cat:"فالوده"},
 
   {name:"شیر موز",price:80000,cat:"شیرها و شیک‌ها"},
   {name:"شیر موز خرما",price:120000,cat:"شیرها و شیک‌ها"},
@@ -158,7 +159,6 @@ const products=[
   {name:"آیس پک",price:120000,cat:"شیرها و شیک‌ها"},
 
   {name:"آب هویج",price:40000,cat:"آبمیوه‌ها"},
-  {name:"آب هویج بستنی",price:60000,cat:"آبمیوه‌ها"},
   {name:"آب انار",price:90000,cat:"آبمیوه‌ها"},
   {name:"آب زرشک",price:90000,cat:"آبمیوه‌ها"},
   {name:"آب سیب",price:70000,cat:"آبمیوه‌ها"},
@@ -236,7 +236,7 @@ function updateCart(){
         <input type="number" min="1" value="${item.qty}" data-index="${index}" />
       </div>
       <div class="price">${(item.price*item.qty).toLocaleString()} تومان</div>
-      <button class="remove-btn" data-index="${index}">حذف</button>
+      <button class="remove-btn" data-index="${index}">−</button>
     `;
     cartList.appendChild(div);
     total+=item.price*item.qty;
@@ -271,7 +271,8 @@ cartList.addEventListener('input',e=>{
 cartList.addEventListener('click',e=>{
   if(e.target.classList.contains('remove-btn')){
     const idx=e.target.dataset.index;
-    cart.splice(idx,1);
+    if(cart[idx].qty>1) cart[idx].qty-=1;
+    else cart.splice(idx,1);
     updateCart();
   }
 });
