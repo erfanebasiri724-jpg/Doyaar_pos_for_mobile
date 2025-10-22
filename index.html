@@ -32,9 +32,9 @@ header h1{margin:0;font-size:1.3rem;font-weight:700}
 .prod-name{font-weight:600}
 .prod-price{color:var(--muted);font-size:0.9rem;margin-top:4px}
 .prod-add{padding:8px 10px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer}
-.cart-card{position:fixed;right:12px;left:12px;bottom:12px;background:linear-gradient(180deg,#141418,#0f0f13);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.6);border:1px solid rgba(255,95,168,0.06)}
+.cart-card{position:fixed;right:12px;bottom:12px;width:320px;background:linear-gradient(180deg,#141418,#0f0f13);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.6);border:1px solid rgba(255,95,168,0.06);max-height:70vh;display:flex;flex-direction:column}
 .cart-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.cart-list{max-height:400px;overflow:auto;margin-top:8px} /* ارتفاع بلندتر و اسکرول */
+.cart-list{flex:1;overflow:auto;margin-top:8px} /* اسکرول واقعی */
 .cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03)}
 .qty{display:flex;gap:6px;align-items:center}
 .qty input{width:56px;padding:6px;border-radius:8px;border:none;text-align:center;background:#0d0d0f;color:var(--text)}
@@ -98,7 +98,6 @@ header h1{margin:0;font-size:1.3rem;font-weight:700}
 </div>
 
 <script>
-// دسته‌بندی محصولات
 const categories={
 "بستنی و فالوده":[
 {name:"بستنی سنتی بدون مغز",price:220000},
@@ -164,7 +163,6 @@ const clearCartBtn=document.getElementById('clearCartBtn');
 const printBtn=document.getElementById('printBtn');
 const searchInput=document.getElementById('searchInput');
 
-// نمایش محصولات با دسته‌بندی
 function renderList(filter=''){
   listContainer.innerHTML='';
   for(let cat in categories){
@@ -189,14 +187,12 @@ function renderList(filter=''){
   }
 }
 
-// افزودن به سبد
 function addToCart(item){
   const exist=cart.find(c=>c.name===item.name);
   if(exist){exist.qty+=1;}else{cart.push({...item,qty:1});}
   renderCart();
 }
 
-// نمایش سبد خرید
 function renderCart(){
   cartList.innerHTML=''; let subtotal=0;
   cart.forEach((i,idx)=>{
@@ -204,12 +200,16 @@ function renderCart(){
     div.innerHTML=`<div>${i.name}</div>
       <div class="qty">
         <input type="number" min="1" value="${i.qty}" />
-        <button class="remove-btn">❌</button>
+        <button class="remove-btn">➖</button>
       </div>
       <div>${i.price.toLocaleString()} تومان</div>
       <div>${(i.price*i.qty).toLocaleString()} تومان</div>`;
     div.querySelector('input').onchange=e=>{i.qty=parseInt(e.target.value)||1; renderCart();}
-    div.querySelector('.remove-btn').onclick=()=>{cart.splice(idx,1); renderCart();}
+    div.querySelector('.remove-btn').onclick=()=>{
+      i.qty-=1;
+      if(i.qty<=0){cart.splice(idx,1);}
+      renderCart();
+    }
     cartList.appendChild(div);
     subtotal+=i.price*i.qty;
   });
@@ -218,13 +218,8 @@ function renderCart(){
   subtotalShow.textContent='جمع: '+subtotal.toLocaleString()+' تومان';
 }
 
-// جستجوی محصول
 searchInput.addEventListener('input',e=>{renderList(e.target.value)});
-
-// خالی کردن سبد
 clearCartBtn.onclick=()=>{cart=[]; renderCart();}
-
-// چاپ فاکتور
 printBtn.onclick=()=>{
   const invBody=document.getElementById('invBody');
   const invTotal=document.getElementById('invTotal');
@@ -241,7 +236,6 @@ printBtn.onclick=()=>{
   document.getElementById('invoicePrint').style.display='none';
 }
 
-// شروع
 renderList();
 renderCart();
 </script>
