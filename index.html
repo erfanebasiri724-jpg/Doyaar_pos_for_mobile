@@ -45,11 +45,6 @@ header h1{margin:0;font-size:1.3rem;font-weight:700}
 .small{font-size:0.85rem;color:var(--muted)}
 .total{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-weight:800}
 .printBtn{width:100%;margin-top:8px;padding:10px;border-radius:8px;border:none;background:var(--accent);color:#000;font-weight:800}
-@media print{
-  body *{visibility:hidden}
-  #invoicePrint, #invoicePrint *{visibility:visible}
-  #invoicePrint{position:fixed;left:0;top:0;width:100%;background:#fff;color:#000}
-}
 </style>
 </head>
 <body>
@@ -113,7 +108,11 @@ const categories={
 {name:"فالوده",price:50000},
 {name:"فالوده بستنی",price:70000},
 {name:"طالبی بستنی",price:70000},
-{name:"آب هویج بستنی",price:60000}
+{name:"آب هویج بستنی",price:60000},
+{name:"بستنی قیفی وانیلی",price:35000},
+{name:"بستنی قیفی وانیل کاکائو",price:40000},
+{name:"بستنی دستگاهی لیوان بزرگ",price:50000},
+{name:"بستنی دستگاهی لیوان کوچک",price:40000}
 ],
 "شیرها و شیک‌ها":[
 {name:"شیر موز",price:80000},
@@ -227,23 +226,22 @@ function renderCart(){
   subtotalShow.textContent='جمع: '+subtotal.toLocaleString()+' تومان';
 }
 
+// جستجو و خالی کردن سبد
 searchInput.addEventListener('input',e=>{renderList(e.target.value)});
 clearCartBtn.onclick=()=>{cart=[]; renderCart();}
-printBtn.onclick=()=>{
-  const invBody=document.getElementById('invBody');
-  const invTotal=document.getElementById('invTotal');
-  invBody.innerHTML=''; let total=0;
-  cart.forEach(i=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td style="text-align:right">${i.name}</td><td>${i.qty}</td><td>${i.price.toLocaleString()}</td><td>${(i.price*i.qty).toLocaleString()}</td>`;
-    invBody.appendChild(tr); total+=i.price*i.qty;
-  });
-  invTotal.textContent=total.toLocaleString();
-  document.getElementById('invDate').textContent=new Date().toLocaleString();
-  document.getElementById('invoicePrint').style.display='block';
-  window.print();
-  document.getElementById('invoicePrint').style.display='none';
-}
+
+// چاپ فاکتور (موبایل + دسکتاپ)
+printBtn.onclick = () => {
+  let printContent = document.getElementById('invoicePrint').innerHTML;
+  let newWin = window.open('', '', 'width=400,height=600');
+  newWin.document.write('<html><head><title>رسید</title></head><body>');
+  newWin.document.write(printContent);
+  newWin.document.write('</body></html>');
+  newWin.document.close();
+  newWin.focus();
+  newWin.print();
+  newWin.close();
+};
 
 renderList();
 renderCart();
