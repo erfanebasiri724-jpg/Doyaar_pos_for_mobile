@@ -123,7 +123,7 @@ header h1{font-size:1.05rem;margin:0;font-weight:700;text-align:center;width:100
 // داده‌ها
 const defaultCategories = {
   "بستنی و فالوده":[
-    {name:"بستنی سنتی بدون مغز", price:40000},
+    {name:"بستنی سنتی بدون مغز", price:220000},
     {name:"بستنی سنتی مغزدار", price:260000},
     {name:"بستنی سنتی حصیری", price:40000},
     {name:"بستنی سنتی لیوانی", price:40000},
