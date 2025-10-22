@@ -17,7 +17,7 @@
 body{margin:0;font-family:Tahoma, Arial, sans-serif;background:var(--bg);color:var(--text)}
 header{display:flex;align-items:center;justify-content:center;padding:14px;background:linear-gradient(90deg,var(--card),#111);border-bottom:1px solid rgba(255,95,168,0.08)}
 header h1{margin:0;font-size:1.3rem;font-weight:700}
-.container{padding:12px;padding-bottom:220px}
+.container{padding:12px}
 .search{margin:8px 0}
 .search input{width:100%;padding:10px 12px;border-radius:10px;border:none;background:#111;color:var(--text);font-size:0.95rem}
 .controls{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
@@ -32,9 +32,12 @@ header h1{margin:0;font-size:1.3rem;font-weight:700}
 .prod-name{font-weight:600}
 .prod-price{color:var(--muted);font-size:0.9rem;margin-top:4px}
 .prod-add{padding:8px 10px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer}
-.cart-card{position:fixed;right:12px;bottom:12px;width:320px;background:linear-gradient(180deg,#141418,#0f0f13);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.6);border:1px solid rgba(255,95,168,0.06);max-height:70vh;display:flex;flex-direction:column}
+
+.cart-toggle{position:fixed;bottom:20px;left:20px;width:60px;height:60px;border-radius:50%;background:var(--accent);color:#000;font-weight:700;font-size:1.2rem;border:none;cursor:pointer;z-index:1000}
+.cart-panel{position:fixed;bottom:20px;left:20px;width:320px;height:400px;background:linear-gradient(180deg,#141418,#0f0f13);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.6);border:1px solid rgba(255,95,168,0.06);display:flex;flex-direction:column;overflow:hidden;transform:translateY(420px);transition:0.3s}
+.cart-panel.open{transform:translateY(0)}
 .cart-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.cart-list{flex:1;overflow:auto;margin-top:8px} /* اسکرول واقعی */
+.cart-list{flex:1;overflow:auto;margin-top:8px} /* اسکرول داخلی */
 .cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03)}
 .qty{display:flex;gap:6px;align-items:center}
 .qty input{width:56px;padding:6px;border-radius:8px;border:none;text-align:center;background:#0d0d0f;color:var(--text)}
@@ -67,7 +70,9 @@ header h1{margin:0;font-size:1.3rem;font-weight:700}
   <div id="listContainer"></div>
 </div>
 
-<div class="cart-card">
+<button class="cart-toggle" id="cartToggle">🛒</button>
+
+<div class="cart-panel" id="cartPanel">
   <div class="cart-header">
     <div><strong>سبد خرید</strong><div class="small" id="cartCount">0 کالا</div></div>
     <div class="small" id="subtotalShow">جمع: 0 تومان</div>
@@ -100,7 +105,7 @@ header h1{margin:0;font-size:1.3rem;font-weight:700}
 <script>
 const categories={
 "بستنی و فالوده":[
-{name:"بستنی سنتی بدون مغز",price:220000},
+{name:"بستنی سنتی بدون مغز",price:40000},
 {name:"بستنی سنتی مغزدار",price:260000},
 {name:"بستنی سنتی حصیری",price:40000},
 {name:"بستنی سنتی لیوانی",price:40000},
@@ -162,6 +167,10 @@ const subtotalShow=document.getElementById('subtotalShow');
 const clearCartBtn=document.getElementById('clearCartBtn');
 const printBtn=document.getElementById('printBtn');
 const searchInput=document.getElementById('searchInput');
+const cartToggle=document.getElementById('cartToggle');
+const cartPanel=document.getElementById('cartPanel');
+
+cartToggle.onclick=()=>cartPanel.classList.toggle('open');
 
 function renderList(filter=''){
   listContainer.innerHTML='';
