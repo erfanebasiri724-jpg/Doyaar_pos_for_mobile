@@ -280,7 +280,66 @@ cartList.addEventListener('click',e=>{
 cartToggle.addEventListener('click',()=>{cartPanel.classList.toggle('open');cartPanel.setAttribute('aria-hidden',cartPanel.classList.contains('open')?'false':'true');});
 closeCartBtn.addEventListener('click',()=>{cartPanel.classList.remove('open');cartPanel.setAttribute('aria-hidden','true');});
 
-printBtn.addEventListener('click',()=>{
+// چاپ فاکتور سفید (موبایل و دسکتاپ)
+printBtn.addEventListener('click', ()=>{
+  const invBody = document.createElement('tbody');
+  let total = 0;
+  
+  cart.forEach(it=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:right; padding:4px 8px;">${it.name}</td>
+      <td style="text-align:center;">${it.qty}</td>
+      <td style="text-align:center;">${it.price.toLocaleString()}</td>
+      <td style="text-align:center;">${(it.price*it.qty).toLocaleString()}</td>
+    `;
+    invBody.appendChild(tr);
+    total += it.price * it.qty;
+  });
+
+  const printHTML = `
+  <html dir="rtl" lang="fa">
+  <head>
+    <meta charset="UTF-8">
+    <title>رسید سفارش</title>
+    <style>
+      body { font-family: sans-serif; direction: rtl; background: white; color: #000; padding: 10px; }
+      h2 { text-align: center; margin-bottom: 15px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+      th, td { border: 1px solid #999; padding: 6px; text-align: center; font-size: 14px; }
+      th { background: #f0f0f0; }
+      .footer { text-align: center; font-size: 13px; border-top: 1px solid #ccc; padding-top: 10px; }
+    </style>
+  </head>
+  <body>
+    <h2>فاکتور فروش - دوتاییه 🍦</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>محصول</th>
+          <th>تعداد</th>
+          <th>قیمت واحد (تومان)</th>
+          <th>جمع جزء (تومان)</th>
+        </tr>
+      </thead>
+      ${invBody.outerHTML}
+    </table>
+    <div style="text-align:center; font-weight:bold; margin-bottom:10px;">
+      جمع کل: ${total.toLocaleString()} تومان
+    </div>
+    <div class="footer">
+      تاریخ چاپ: ${new Date().toLocaleString()}
+    </div>
+  </body>
+  </html>`;
+
+  const newWin = window.open('', '', 'width=420,height=600');
+  newWin.document.write(printHTML);
+  newWin.document.close();
+  newWin.focus();
+  newWin.print();
+  newWin.close();
+});
   invoiceItems.innerHTML='';
   cart.forEach(item=>{
     const div=document.createElement('div');
