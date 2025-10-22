@@ -100,7 +100,7 @@ header h1{margin:0;font-size:1.3rem;font-weight:700}
 <script>
 const categories={
 "بستنی و فالوده":[
-{name:"بستنی سنتی بدون مغز",price:220000},
+{name:"بستنی سنتی بدون مغز",price:40000},
 {name:"بستنی سنتی مغزدار",price:260000},
 {name:"بستنی سنتی حصیری",price:40000},
 {name:"بستنی سنتی لیوانی",price:40000},
@@ -230,8 +230,27 @@ function renderCart(){
 searchInput.addEventListener('input',e=>{renderList(e.target.value)});
 clearCartBtn.onclick=()=>{cart=[]; renderCart();}
 
-// چاپ فاکتور (موبایل + دسکتاپ)
+// چاپ فاکتور (موبایل + دسکتاپ) با سبد واقعی
 printBtn.onclick = () => {
+  const invBody = document.getElementById('invBody');
+  const invTotal = document.getElementById('invTotal');
+  const invDate = document.getElementById('invDate');
+
+  invBody.innerHTML = '';
+  let total = 0;
+  cart.forEach(item => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${item.name}</td>
+                     <td>${item.qty}</td>
+                     <td>${item.price.toLocaleString()}</td>
+                     <td>${(item.price*item.qty).toLocaleString()}</td>`;
+    invBody.appendChild(row);
+    total += item.price*item.qty;
+  });
+
+  invTotal.textContent = total.toLocaleString();
+  invDate.textContent = new Date().toLocaleString();
+
   let printContent = document.getElementById('invoicePrint').innerHTML;
   let newWin = window.open('', '', 'width=400,height=600');
   newWin.document.write('<html><head><title>رسید</title></head><body>');
