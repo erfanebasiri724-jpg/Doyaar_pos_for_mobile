@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POS بستنی‌فروشی عرفانه</title>
+    <title>POS بستنی‌فروشی دویار</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
     <style>
@@ -18,8 +18,9 @@
     <!-- هدر ثابت و چسبان -->
     <div class="bg-gradient-to-l from-indigo-700 to-purple-600 text-white p-4 shadow-lg sticky top-0 z-50">
         <div class="flex justify-between items-center mb-3">
-            <h1 class="text-lg font-bold flex items-center gap-1">بستنی عرفانه 🍦</h1>
+            <h1 class="text-lg font-bold flex items-center gap-1">بستنی دویار 🍦</h1>
             <div class="flex items-center gap-2">
+                <button onclick="openAdminModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-3 py-2 rounded-xl font-bold transition">⚙️ مدیریت منو</button>
                 <button onclick="openReportModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3 py-2 rounded-xl font-bold transition">📊 گزارش فروش</button>
                 <div class="text-lg font-black bg-white/20 px-3 py-1 rounded-lg" id="total-price">0 تومان</div>
             </div>
@@ -27,23 +28,17 @@
 
         <!-- نوار سرچ هوشمند -->
         <div class="relative mb-3">
-            <input type="text" id="search-input" oninput="handleSearch()" placeholder="جستجوی سریع محصول... (مثال: شیر موز)" 
+            <input type="text" id="search-input" oninput="handleSearch()" placeholder="جستجوی سریع محصول..." 
                    class="w-full py-2.5 px-4 pr-10 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm">
             <span class="absolute left-3 top-3 text-gray-400">🔍</span>
         </div>
         
-        <!-- منوی دسته‌بندی -->
-        <div class="flex gap-4 overflow-x-auto no-scrollbar py-1 text-sm" id="category-menu">
-            <button onclick="filterCategory('آبمیوه')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-آبمیوه">آبمیوه‌ها</button>
-            <button onclick="filterCategory('معجون')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-معجون">معجون‌ها</button>
-            <button onclick="filterCategory('بستنی')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-بستنی">بستنی و فالوده</button>
-            <button onclick="filterCategory('قهوه')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-قهوه">نوشیدنی گرم</button>
-        </div>
+        <!-- منوی دسته‌بندی دینامیک -->
+        <div class="flex gap-4 overflow-x-auto no-scrollbar py-1 text-sm" id="category-menu"></div>
     </div>
 
     <!-- بدنه اصلی برنامه -->
-    <div class="p-4 pb-44">
-        <!-- کانتینر محصولات -->
+    <div class="p-4 pb-56">
         <div id="menu-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-8"></div>
 
         <!-- فاکتور فروش -->
@@ -54,21 +49,25 @@
     </div>
 
     <!-- پنل دکمه‌های عملیاتی ثابت پایین -->
-    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t flex gap-3 shadow-2xl z-40">
-        <button onclick="clearCart()" class="flex-1 bg-red-50 text-red-600 py-3.5 rounded-2xl font-bold active:scale-95 transition">خالی کردن</button>
-        <button onclick="submitOrder()" class="flex-[2] bg-indigo-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-100 active:scale-95 transition">ثبت و چاپ</button>
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t flex flex-col gap-2 shadow-2xl z-40">
+        <div class="flex gap-2">
+            <button onclick="parkOrder()" class="flex-1 bg-purple-50 text-purple-600 py-2 rounded-xl font-bold text-xs active:scale-95 transition">⏸️ پارک سفارش</button>
+            <button onclick="openHeldModal()" class="flex-1 bg-orange-50 text-orange-600 py-2 rounded-xl font-bold text-xs active:scale-95 transition">📌 معلق‌ها (<span id="held-count">0</span>)</button>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="clearCart()" class="flex-1 bg-red-50 text-red-600 py-3.5 rounded-2xl font-bold active:scale-95 transition">خالی کردن</button>
+            <button onclick="submitOrder()" class="flex-[2] bg-indigo-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-100 active:scale-95 transition">ثبت و چاپ</button>
+        </div>
     </div>
 
-    <!-- مودال گزارش فروش روزانه (پاپ‌آپ) -->
+    <!-- مودال گزارش فروش -->
     <div id="report-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b pb-3 mb-4">
                 <h3 class="text-lg font-bold text-gray-800">گزارش فروش امروز 📈</h3>
                 <button onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">×</button>
             </div>
-            
             <div class="flex-1 overflow-y-auto space-y-4 pr-1">
-                <!-- کارت‌های وضعیت سریع -->
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-indigo-50 p-4 rounded-2xl text-center">
                         <span class="text-xs text-indigo-500 block mb-1">کل فروش روز</span>
@@ -79,17 +78,11 @@
                         <span class="font-black text-purple-700 text-lg" id="rep-invoice-count">0</span>
                     </div>
                 </div>
-
-                <!-- جزئیات اقلام فروخته شده -->
                 <div>
-                    <h4 class="text-xs font-bold text-gray-400 mb-2">جزئیات فروش به تفکیک محصول:</h4>
-                    <div id="rep-items-list" class="space-y-2 max-h-[30vh] overflow-y-auto">
-                        <!-- اقلام به صورت دینامیک اینجا اضافه می‌شوند -->
-                    </div>
+                    <h4 class="text-xs font-bold text-gray-400 mb-2">جزئیات فروش:</h4>
+                    <div id="rep-items-list" class="space-y-2 max-h-[30vh] overflow-y-auto"></div>
                 </div>
             </div>
-
-            <!-- دکمه‌های مودال -->
             <div class="border-t pt-4 mt-4 flex gap-2">
                 <button onclick="resetDailySales()" class="flex-1 bg-red-100 hover:bg-red-200 text-red-600 py-3 rounded-2xl font-bold text-sm transition">صفر کردن صندوق</button>
                 <button onclick="closeReportModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm transition">بستن پنجره</button>
@@ -97,10 +90,97 @@
         </div>
     </div>
 
+    <!-- مودال سفارش‌های معلق (جدید) -->
+    <div id="held-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3 mb-4 gap-2">
+                <h3 class="text-lg font-bold text-gray-800">📌 سفارش‌های معلق</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="startNewOrder()" class="bg-green-50 text-green-600 px-3 py-2 rounded-xl text-xs font-bold">+ سفارش جدید</button>
+                    <button onclick="closeHeldModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">×</button>
+                </div>
+            </div>
+            <div id="held-list-container" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                <!-- لیست اینجا پر می‌شود -->
+            </div>
+            <div class="border-t pt-4 mt-4">
+                <button onclick="closeHeldModal()" class="w-full bg-gray-100 py-3 rounded-2xl font-bold text-sm">بستن</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال مدیریت منو -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800">مدیریت محصولات منو 🛠️</h3>
+                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">×</button>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-4 pr-1 no-scrollbar">
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <h4 id="admin-form-title" class="text-xs font-bold text-gray-500 mb-3">افزودن محصول جدید</h4>
+                    <input type="hidden" id="edit-product-id" value="">
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1">نام محصول</label>
+                            <input type="text" id="prod-name" class="w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1">قیمت (تومان)</label>
+                            <input type="number" id="prod-price" class="w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1">دسته‌بندی (زبانه)</label>
+                            <select id="prod-cat" onchange="toggleNewCatInput()" class="w-full py-2 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"></select>
+                        </div>
+                        <div id="new-cat-div" class="hidden">
+                            <label class="text-[10px] text-red-500 block mb-1">نام زبانه جدید</label>
+                            <input type="text" id="prod-new-cat" class="w-full py-2 px-3 rounded-xl border text-sm border-red-300">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1">اموجی محصول</label>
+                            <input type="text" id="prod-emoji" class="w-full py-2 px-3 rounded-xl border text-sm text-center">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1">رنگ تمپلیت</label>
+                            <select id="prod-color" class="w-full py-2 px-3 rounded-xl border text-sm bg-white">
+                                <option value="orange">Orange</option>
+                                <option value="green">Green</option>
+                                <option value="red">Red</option>
+                                <option value="amber">Amber</option>
+                                <option value="yellow">Yellow</option>
+                                <option value="blue">Blue</option>
+                                <option value="sky">Sky</option>
+                                <option value="pink">Pink</option>
+                                <option value="purple">Purple</option>
+                                <option value="stone">Stone</option>
+                                <option value="brown">Brown</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="saveProduct()" class="flex-[2] bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-xs transition active:scale-95">ذخیره محصول</button>
+                        <button id="btn-cancel-edit" onclick="resetAdminForm()" class="flex-1 bg-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-xs transition active:scale-95 hidden">انصراف</button>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-gray-400 mb-2">لیست محصولات فعال:</h4>
+                    <div id="admin-products-list" class="space-y-2 max-h-[30vh] overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+            <div class="border-t pt-4 mt-4">
+                <button onclick="closeAdminModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm transition">بستن پنجره</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // دیتابیس محصولات عرفانه
-        const myProducts = [
-            // آبمیوه‌ها
+        const defaultProducts = [
             { id: 1, cat: 'آبمیوه', name: 'آب هویج', price: 60000, emoji: '🥕', color: 'orange' },
             { id: 2, cat: 'آبمیوه', name: 'آب هویج بستنی', price: 90000, emoji: '🥕🍦', color: 'orange' },
             { id: 3, cat: 'آبمیوه', name: 'آب طالبی', price: 100000, emoji: '🍈', color: 'green' },
@@ -112,8 +192,6 @@
             { id: 9, cat: 'آبمیوه', name: 'آب زرشک', price: 120000, emoji: '🍇', color: 'red' },
             { id: 10, cat: 'آبمیوه', name: 'آب پرتقال', price: 120000, emoji: '🍊', color: 'orange' },
             { id: 11, cat: 'آبمیوه', name: 'آب سیب', price: 120000, emoji: '🍎', color: 'green' },
-
-            // معجون‌ها
             { id: 12, cat: 'معجون', name: 'معجون بزرگ', price: 420000, emoji: '🍯', color: 'amber' },
             { id: 13, cat: 'معجون', name: 'معجون کوچک', price: 340000, emoji: '🍯', color: 'amber' },
             { id: 14, cat: 'معجون', name: 'معجون لیوانی', price: 270000, emoji: '🥤', color: 'amber' },
@@ -123,8 +201,6 @@
             { id: 18, cat: 'معجون', name: 'شیر موز خرما', price: 190000, emoji: '🌴', color: 'yellow' },
             { id: 19, cat: 'معجون', name: 'شیر موز گردو', price: 190000, emoji: '🥥', color: 'yellow' },
             { id: 20, cat: 'معجون', name: 'شیر انبه', price: 200000, emoji: '🥭', color: 'orange' },
-
-            // بستنی و فالوده
             { id: 21, cat: 'بستنی', name: 'قیفی وانیلی', price: 60000, emoji: '🍦', color: 'blue' },
             { id: 22, cat: 'بستنی', name: 'قیفی کاکائو', price: 60000, emoji: '🍦🤎', color: 'blue' },
             { id: 23, cat: 'بستنی', name: 'قیفی لیوان بزرگ', price: 80000, emoji: '🍧', color: 'blue' },
@@ -140,9 +216,7 @@
             { id: 33, cat: 'بستنی', name: 'بستنی حصیری', price: 70000, emoji: '🧇', color: 'yellow' },
             { id: 34, cat: 'بستنی', name: 'بستنی اسکوپ', price: 50000, emoji: '🥄', color: 'pink' },
             { id: 35, cat: 'بستنی', name: 'ایس پک و شیک', price: 190000, emoji: '🥤', color: 'purple' },
-
-            // قهوه و گرم
-            { id: 36, cat: 'قهوه', name: 'سینگل', price: 60000, emoji: '☕', color: 'stone' },
+            { id: 36, cat: 'قهوه', name: 'سينگل', price: 60000, emoji: '☕', color: 'stone' },
             { id: 37, cat: 'قهوه', name: 'دبل', price: 70000, emoji: '☕☕', color: 'stone' },
             { id: 38, cat: 'قهوه', name: 'هات چاکلت', price: 130000, emoji: '🍫', color: 'brown' },
             { id: 39, cat: 'قهوه', name: 'کاپوچینو', price: 120000, emoji: '🥛☕', color: 'orange' },
@@ -157,50 +231,117 @@
             { id: 48, cat: 'قهوه', name: 'شیر کاکائو', price: 90000, emoji: '🥛', color: 'brown' }
         ];
 
+        let myProducts = JSON.parse(localStorage.getItem('erfane_pos_products')) || defaultProducts;
         let cart = [];
         let currentCategory = 'آبمیوه';
         let searchQuery = '';
+        let heldOrders = JSON.parse(localStorage.getItem('erfane_pos_held_orders')) || [];
+        let currentHeldOrderName = null;
 
-        // آبجکت فروش روزانه (بارگذاری از LocalStorage یا مقدار اولیه)
-        let dailySales = JSON.parse(localStorage.getItem('erfane_pos_sales')) || {
-            totalAmount: 0,
-            invoiceCount: 0,
-            soldItems: {} // ذخیره به فرمت { "شیر موز": 5, "آب هویج": 2 }
-        };
+        const catNames = { 'آبمیوه': 'آبمیوه‌ها', 'معجون': 'معجون‌ها', 'بستنی': 'بستنی و فالوده', 'قهوه': 'نوشیدنی گرم' };
 
-        // ذخیره تغییرات صندوق در حافظه مرورگر
-        function saveToLocalStorage() {
-            localStorage.setItem('erfane_pos_sales', JSON.stringify(dailySales));
+        let dailySales = JSON.parse(localStorage.getItem('erfane_pos_sales')) || { totalAmount: 0, invoiceCount: 0, soldItems: {} };
+
+        function saveProductsToLocalStorage() { localStorage.setItem('erfane_pos_products', JSON.stringify(myProducts)); }
+        function saveToLocalStorage() { localStorage.setItem('erfane_pos_sales', JSON.stringify(dailySales)); }
+        
+        // --- تابع همگام‌سازی شمارنده سفارش‌های معلق با دیتای واقعی سفارش‌ها ---
+        function syncHeldCounterFromHeldOrders() {
+            let maxCustomerNumber = 0;
+            heldOrders.forEach(order => {
+                if (!order || !order.name) return;
+                // استخراج عدد از نام مشتری (مثلاً "مشتری 5" -> 5)
+                const match = String(order.name).match(/(\d+)/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (!isNaN(num) && num > maxCustomerNumber) {
+                        maxCustomerNumber = num;
+                    }
+                }
+            });
+            // اگر هیچ سفارش معلقی نباشه برمی‌گرده به ۱، در غیر این صورت آخرین شماره + ۱
+            const nextCounter = heldOrders.length === 0 ? 1 : maxCustomerNumber + 1;
+            setHeldCounter(nextCounter);
         }
 
-        // فیلتر کردن دسته‌بندی‌ها
+        function saveHeldOrders() { 
+            localStorage.setItem('erfane_pos_held_orders', JSON.stringify(heldOrders)); 
+            syncHeldCounterFromHeldOrders(); // همگام‌سازی فوری شماره مشتری بعدی
+            document.getElementById('held-count').innerText = heldOrders.length;
+        }
+
+        // --- نرمال‌سازی متن برای سرچ فارسی ---
+        function normalizeFa(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/ي/g, 'ی')
+                .replace(/ك/g, 'ک')
+                .replace(/أ|إ|ٱ|آ/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+                .replace(/\s+/g, '')
+                .trim()
+                .toLowerCase();
+        }
+
+        // --- شمارنده نام مشتری برای سفارش‌های پارک شده ---
+        function getHeldCounter() {
+            return parseInt(localStorage.getItem('erfane_pos_next_held_number') || '1', 10);
+        }
+
+        function setHeldCounter(n) {
+            localStorage.setItem('erfane_pos_next_held_number', String(n));
+        }
+
+        function getDefaultHeldName() {
+            return `مشتری ${getHeldCounter()}`;
+        }
+
+        function bumpHeldCounterIfUsed(defaultName, finalName) {
+            if ((finalName || '').trim() === (defaultName || '').trim()) {
+                setHeldCounter(getHeldCounter() + 1);
+            }
+        }
+
+        function renderCategories() {
+            const categories = [...new Set(myProducts.map(p => p.cat))];
+            const menu = document.getElementById('category-menu');
+            menu.innerHTML = categories.map(cat => {
+                const displayName = catNames[cat] || cat;
+                return `<button onclick="filterCategory('${cat}')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-${cat}">${displayName}</button>`;
+            }).join('');
+            if (!categories.includes(currentCategory) && categories.length > 0) currentCategory = categories[0];
+            updateActiveTab();
+        }
+
+        function updateActiveTab() {
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('category-active'));
+            const activeBtn = document.getElementById('cat-' + currentCategory);
+            if (activeBtn) activeBtn.classList.add('category-active');
+        }
+
         function filterCategory(cat) {
             currentCategory = cat;
             searchQuery = ''; 
             document.getElementById('search-input').value = '';
-            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('category-active'));
-            document.getElementById('cat-' + cat).classList.add('category-active');
+            updateActiveTab();
             renderMenu();
         }
 
-        // فیلتر کردن بر اساس سرچ
         function handleSearch() {
-            searchQuery = document.getElementById('search-input').value.trim();
-            if (searchQuery.length > 0) {
-                document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('category-active'));
-            } else {
-                document.getElementById('cat-' + currentCategory).classList.add('category-active');
-            }
+            searchQuery = document.getElementById('search-input').value;
+            if (searchQuery.trim().length === 0) updateActiveTab();
+            else document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('category-active'));
             renderMenu();
         }
 
-        // رندر کردن منو
         function renderMenu() {
             const container = document.getElementById('menu-container');
-            let filtered = [];
+            let filtered;
 
-            if (searchQuery.length > 0) {
-                filtered = myProducts.filter(p => p.name.includes(searchQuery));
+            if (searchQuery.trim()) {
+                const normalizedSearch = normalizeFa(searchQuery);
+                filtered = myProducts.filter(p => normalizeFa(p.name).includes(normalizedSearch));
             } else {
                 filtered = myProducts.filter(p => p.cat === currentCategory);
             }
@@ -209,25 +350,23 @@
                 container.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8 text-sm">محصولی پیدا نشد 😕</div>';
                 return;
             }
-
             container.innerHTML = filtered.map(p => {
-                const cartItem = cart.find(item => item.id === p.id);
-                const qty = cartItem ? cartItem.qty : 0;
-                
+                const item = cart.find(i => i.id === p.id);
+                const qty = item ? item.qty : 0;
                 return `
                     <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between items-center transition-all ${qty > 0 ? 'ring-2 ring-indigo-500 bg-indigo-50/20' : ''}">
                         <div class="flex flex-col items-center pointer-events-none">
-                            <span class="text-3xl mb-1">${p.emoji}</span>
-                            <span class="font-bold text-[13px] text-center leading-tight h-8 flex items-center">${p.name}</span>
-                            <span class="text-[10px] mt-1 text-gray-400">${p.price.toLocaleString()} تومان</span>
+                            <span class="text-3xl mb-1">${p.emoji || '🍦'}</span>
+                            <span class="font-bold text-[13px] text-center h-8 flex items-center">${p.name}</span>
+                            <span class="text-[10px] mt-1 text-gray-400">${p.price.toLocaleString()} ت</span>
                         </div>
                         <div class="flex items-center gap-3 mt-3 w-full justify-center">
                             ${qty > 0 ? `
-                                <button onclick="changeQty(${p.id}, -1)" class="w-7 h-7 bg-red-100 text-red-600 rounded-full font-black text-lg flex items-center justify-center active:scale-90 transition">-</button>
-                                <span class="font-bold text-sm text-indigo-700">${qty}</span>
-                                <button onclick="changeQty(${p.id}, 1)" class="w-7 h-7 bg-indigo-100 text-indigo-600 rounded-full font-black text-lg flex items-center justify-center active:scale-90 transition">+</button>
+                                <button onclick="changeQty(${p.id}, -1)" class="w-7 h-7 bg-red-100 text-red-600 rounded-full flex items-center justify-center">-</button>
+                                <span class="font-bold text-sm">${qty}</span>
+                                <button onclick="changeQty(${p.id}, 1)" class="w-7 h-7 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center">+</button>
                             ` : `
-                                <button onclick="changeQty(${p.id}, 1)" class="w-full py-1 px-3 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold active:scale-95 transition-all">+ افزودن</button>
+                                <button onclick="changeQty(${p.id}, 1)" class="w-full py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">+ افزودن</button>
                             `}
                         </div>
                     </div>
@@ -235,37 +374,29 @@
             }).join('');
         }
 
-        // تغییر تعداد در سبد خرید
         function changeQty(id, amount) {
             const product = myProducts.find(p => p.id === id);
-            const cartItem = cart.find(item => item.id === id);
-
-            if (cartItem) {
-                cartItem.qty += amount;
-                if (cartItem.qty <= 0) {
-                    cart = cart.filter(item => item.id !== id);
-                }
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += amount;
+                if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
             } else if (amount > 0) {
                 cart.push({ ...product, qty: 1 });
             }
-
             renderMenu();
             renderCart();
         }
 
-        // رندر فاکتور سبد خرید
         function renderCart() {
             const list = document.getElementById('cart-list');
             const totalDisplay = document.getElementById('total-price');
             let total = 0;
-
             if (cart.length === 0) {
-                list.innerHTML = '<p class="text-center text-gray-300 py-4 text-sm">هیچ آیتمی انتخاب نشده است.</p>';
+                list.innerHTML = '<p class="text-center text-gray-300 py-4 text-sm">هیچ آیتمی انتخاب نشده.</p>';
                 totalDisplay.innerText = "0 تومان";
                 return;
             }
-
-            list.innerHTML = cart.map((item) => {
+            list.innerHTML = cart.map(item => {
                 total += (item.price * item.qty);
                 return `
                     <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
@@ -276,94 +407,198 @@
                         <div class="flex items-center gap-3">
                             <span class="font-black text-indigo-600 text-sm">${(item.price * item.qty).toLocaleString()}</span>
                             <div class="flex items-center gap-1 bg-white border rounded-lg p-0.5">
-                                <button onclick="changeQty(${item.id}, -1)" class="w-6 h-6 text-red-500 rounded flex items-center justify-center font-bold">-</button>
+                                <button onclick="changeQty(${item.id}, -1)" class="w-6 h-6 text-red-500 font-bold">-</button>
                                 <span class="px-2 text-xs font-bold">${item.qty}</span>
-                                <button onclick="changeQty(${item.id}, 1)" class="w-6 h-6 text-green-500 rounded flex items-center justify-center font-bold">+</button>
+                                <button onclick="changeQty(${item.id}, 1)" class="w-6 h-6 text-green-500 font-bold">+</button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
-            
             totalDisplay.innerText = total.toLocaleString() + " تومان";
         }
 
         function clearCart() {
-            if(confirm('آیا مطمئنی که می‌خوای سبد خرید رو کاملاً خالی کنی؟')) {
+            if (confirm('پاک کردن سبد؟')) {
                 cart = [];
+                currentHeldOrderName = null;
                 renderMenu();
                 renderCart();
             }
         }
-        
-        // ثبت نهایی سفارش و اضافه کردن به فروش روزانه
+
         function submitOrder() {
             if (cart.length === 0) return;
-
             let invoiceTotal = 0;
-            
-            // اضافه کردن اقلام سبد خرید جاری به تاریخچه فروش روزانه
             cart.forEach(item => {
                 invoiceTotal += (item.price * item.qty);
-                
-                if (dailySales.soldItems[item.name]) {
-                    dailySales.soldItems[item.name] += item.qty;
-                } else {
-                    dailySales.soldItems[item.name] = item.qty;
-                }
+                dailySales.soldItems[item.name] = (dailySales.soldItems[item.name] || 0) + item.qty;
             });
-
             dailySales.totalAmount += invoiceTotal;
             dailySales.invoiceCount += 1;
-
-            saveToLocalStorage(); // ذخیره در کش مرورگر
-
-            alert(`سفارش با موفقیت ثبت شد! ✅\nمبلغ فاکتور: ${invoiceTotal.toLocaleString()} تومان`);
-            
-            // بازنشانی سبد خرید
+            saveToLocalStorage();
+            alert(`ثبت شد! ✅\nمبلغ: ${invoiceTotal.toLocaleString()} ت`);
             cart = [];
+            currentHeldOrderName = null;
             renderMenu();
             renderCart();
         }
 
-        // مدیریت باز و بسته کردن مودال گزارش
-        function openReportModal() {
-            document.getElementById('rep-total-sales').innerText = dailySales.totalAmount.toLocaleString() + " تومان";
-            document.getElementById('rep-invoice-count').innerText = dailySales.invoiceCount;
+        // --- قابلیت پارک سفارش ---
+        function parkOrder() {
+            if (cart.length === 0) return;
 
-            const listContainer = document.getElementById('rep-items-list');
-            const items = Object.entries(dailySales.soldItems);
+            // اگر این سبد از معلق برگشته، با همون اسم قبلی دوباره پارک شود
+            if (currentHeldOrderName) {
+                heldOrders.push({ id: Date.now(), name: currentHeldOrderName, items: [...cart] });
+                currentHeldOrderName = null;
+                saveHeldOrders();
+                cart = [];
+                renderMenu();
+                renderCart();
+                return;
+            }
 
-            if (items.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-gray-300 py-4 text-xs">امروز هنوز فروشی ثبت نشده است.</p>';
-            } else {
-                listContainer.innerHTML = items.map(([name, qty]) => `
-                    <div class="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-xl text-xs">
-                        <span class="font-bold text-gray-700">${name}</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-lg font-black">${qty} عدد</span>
+            const defaultName = getDefaultHeldName();
+            const name = prompt("نام یا شماره مشتری؟", defaultName);
+
+            if (name === null) return;
+
+            const finalName = (name || '').trim() || defaultName;
+
+            heldOrders.push({ id: Date.now(), name: finalName, items: [...cart] });
+            bumpHeldCounterIfUsed(defaultName, finalName);
+
+            saveHeldOrders();
+            cart = [];
+            currentHeldOrderName = null;
+            renderMenu();
+            renderCart();
+        }
+
+        function openHeldModal() {
+            const container = document.getElementById('held-list-container');
+            if (heldOrders.length === 0) container.innerHTML = '<p class="text-center text-gray-300 py-8">سفارش معلقی وجود ندارد.</p>';
+            else {
+                container.innerHTML = heldOrders.map(order => `
+                    <div class="bg-gray-50 p-4 rounded-2xl flex justify-between items-center border">
+                        <div>
+                            <div class="font-bold text-sm text-gray-800">${order.name}</div>
+                            <div class="text-[10px] text-gray-400">${order.items.length} قلم کالا</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="restoreOrder(${order.id})" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">ادامه</button>
+                            <button onclick="deleteHeld(${order.id})" class="bg-red-50 text-red-500 px-3 py-1.5 rounded-lg text-xs font-bold">حذف</button>
+                        </div>
                     </div>
                 `).join('');
             }
-
-            document.getElementById('report-modal').classList.remove('hidden');
+            document.getElementById('held-modal').classList.remove('hidden');
         }
 
-        function closeReportModal() {
-            document.getElementById('report-modal').classList.add('hidden');
+        function closeHeldModal() { document.getElementById('held-modal').classList.add('hidden'); }
+
+        function restoreOrder(id) {
+            if (cart.length > 0 && !confirm("سبد فعلی پر است. جایگزین شود؟")) return;
+            const order = heldOrders.find(o => o.id === id);
+            if (!order) return;
+
+            cart = [...order.items];
+            currentHeldOrderName = order.name;
+
+            heldOrders = heldOrders.filter(o => o.id !== id);
+            saveHeldOrders();
+            renderMenu();
+            renderCart();
+            closeHeldModal();
         }
 
-        // صفر کردن صندوق روزانه
-        function resetDailySales() {
-            if (confirm('عرفانه جان، مطمئنی می‌خوای صندوق رو صفر کنی؟ کل آمارهای فروش امروز پاک میشه.')) {
-                dailySales = { totalAmount: 0, invoiceCount: 0, soldItems: {} };
-                saveToLocalStorage();
-                openReportModal(); // رفرش کردن ویو گزارش
+        function deleteHeld(id) {
+            if(confirm('حذف این سفارش معلق؟')) {
+                heldOrders = heldOrders.filter(o => o.id !== id);
+                saveHeldOrders();
+                openHeldModal();
             }
         }
 
-        // لود اولیه برنامه
+        // شروع سفارش جدید (کارت را خالی کرده و مودال معلق‌ها را می‌بندد)
+        function startNewOrder() {
+            cart = [];
+            currentHeldOrderName = null;
+            renderMenu();
+            renderCart();
+            closeHeldModal();
+        }
+
+        // --- مدیریت منو و گزارش ---
+        function openReportModal() {
+            document.getElementById('rep-total-sales').innerText = dailySales.totalAmount.toLocaleString() + " تومان";
+            document.getElementById('rep-invoice-count').innerText = dailySales.invoiceCount;
+            const list = document.getElementById('rep-items-list');
+            const items = Object.entries(dailySales.soldItems);
+            list.innerHTML = items.length ? items.map(([n, q]) => `<div class="flex justify-between bg-gray-50 px-3 py-2 rounded-xl text-xs"><span class="font-bold">${n}</span><span class="bg-indigo-100 px-2 py-1 rounded-lg font-black">${q} عدد</span></div>`).join('') : '<p class="text-center text-xs text-gray-300">بدون فروش.</p>';
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+        function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+        function resetDailySales() { if (confirm('صندوق صفر شود؟')) { dailySales = { totalAmount: 0, invoiceCount: 0, soldItems: {} }; saveToLocalStorage(); openReportModal(); } }
+
+        function openAdminModal() { populateCategorySelect(); renderAdminProducts(); resetAdminForm(); document.getElementById('admin-modal').classList.remove('hidden'); }
+        function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
+        function populateCategorySelect() {
+            const categories = [...new Set(myProducts.map(p => p.cat))];
+            document.getElementById('prod-cat').innerHTML = categories.map(cat => `<option value="${cat}">${catNames[cat] || cat}</option>`).join('') + `<option value="new">+ زبانه جدید...</option>`;
+        }
+        function toggleNewCatInput() { document.getElementById('new-cat-div').className = document.getElementById('prod-cat').value === 'new' ? 'block' : 'hidden'; }
+        function renderAdminProducts() {
+            document.getElementById('admin-products-list').innerHTML = myProducts.map(p => `
+                <div class="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-xl text-xs border">
+                    <div class="flex items-center gap-2"><span class="text-xl">${p.emoji}</span><div class="flex flex-col"><span class="font-bold">${p.name}</span><span class="text-[9px] text-gray-400">${p.price.toLocaleString()} ت</span></div></div>
+                    <div class="flex gap-1"><button onclick="editProduct(${p.id})" class="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold">ویرایش</button><button onclick="deleteProduct(${p.id})" class="bg-red-50 text-red-600 px-2 py-1 rounded-lg font-bold">حذف</button></div>
+                </div>`).join('');
+        }
+        function saveProduct() {
+            const id = document.getElementById('edit-product-id').value;
+            const name = document.getElementById('prod-name').value;
+            const price = parseInt(document.getElementById('prod-price').value);
+            let cat = document.getElementById('prod-cat').value;
+            if (cat === 'new') cat = document.getElementById('prod-new-cat').value;
+            if (!name || !price || !cat) return alert('اطلاعات ناقص!');
+            const pData = { id: id ? parseInt(id) : Date.now(), cat, name, price, emoji: document.getElementById('prod-emoji').value || '🍦', color: document.getElementById('prod-color').value };
+            if (id) myProducts[myProducts.findIndex(p => p.id == id)] = pData; else myProducts.push(pData);
+            saveProductsToLocalStorage();
+            renderCategories();
+            renderMenu();
+            renderCart();
+            openAdminModal();
+        }
+        function editProduct(id) {
+            const p = myProducts.find(item => item.id == id);
+            document.getElementById('edit-product-id').value = p.id;
+            document.getElementById('prod-name').value = p.name;
+            document.getElementById('prod-price').value = p.price;
+            document.getElementById('prod-cat').value = p.cat;
+            document.getElementById('prod-emoji').value = p.emoji;
+            document.getElementById('prod-color').value = p.color;
+            document.getElementById('admin-form-title').innerText = `ویرایش: ${p.name}`;
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+        }
+        function deleteProduct(id) { if (confirm('حذف شود؟')) { myProducts = myProducts.filter(p => p.id != id); saveProductsToLocalStorage(); renderCategories(); renderMenu(); renderAdminProducts(); } }
+        function resetAdminForm() {
+            document.getElementById('edit-product-id').value = '';
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+            document.getElementById('prod-emoji').value = '';
+            document.getElementById('new-cat-div').className = 'hidden';
+            document.getElementById('admin-form-title').innerText = "افزودن محصول جدید";
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+        }
+
+        // --- شروع کار نرم‌افزار ---
+        renderCategories();
         filterCategory('آبمیوه');
         renderCart();
+        syncHeldCounterFromHeldOrders(); // همگام‌سازی و اصلاح خودکار شماره‌گذاری در بدو ورود
+        document.getElementById('held-count').innerText = heldOrders.length;
     </script>
 </body>
 </html>
