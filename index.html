@@ -1,598 +1,369 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>کافه بستنی دویار — POS موبایل</title>
-<style>
-:root{
-  --bg:#fff7fb;
-  --accent:#d18cd1;
-  --accent-2:#b069c2;
-  --panel:#ffffff;
-  --muted:#666;
-  --highlight:#fff176;
-  --card-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  --radius:12px;
-  --danger:#ef5350;
-}
-
-/* reset */
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background:var(--bg);
-  font-family: "Segoe UI", Tahoma, "Helvetica Neue", sans-serif;
-  color:#222;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  direction:rtl;
-}
-
-/* header */
-.header{
-  background:linear-gradient(90deg,var(--accent),#e7a7e9);
-  color:white;
-  padding:14px 12px;
-  text-align:center;
-  font-weight:700;
-  font-size:18px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
-
-/* top info row */
-.top-row{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  padding:10px;
-  align-items:center;
-}
-.info-pill{
-  background:var(--panel);
-  border-radius:10px;
-  padding:8px 10px;
-  box-shadow:var(--card-shadow);
-  font-size:14px;
-}
-.info-pill strong{display:block;font-size:16px}
-
-/* main layout: invoice stack + product area */
-.main{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  padding:10px;
-  padding-bottom:120px; /* space for bottom controls */
-}
-
-/* invoice area (middle) */
-.invoice{
-  background:var(--panel);
-  border-radius:var(--radius);
-  box-shadow:var(--card-shadow);
-  padding:10px;
-  min-height:160px;
-  max-height:46vh;
-  overflow:auto;
-}
-.inv-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:8px 4px;
-  border-radius:8px;
-}
-.inv-row.header{
-  font-weight:700;
-  color:var(--muted);
-  font-size:13px;
-  border-bottom:1px dashed #eee;
-}
-.inv-item{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  padding:8px 4px;
-  align-items:center;
-  border-bottom:1px solid #f2f2f2;
-}
-.inv-item .name{flex:1; font-size:15px;}
-.qty-controls button{
-  background:var(--accent);
-  color:white;border:none;padding:6px 8px;border-radius:6px;margin:0 2px;font-weight:700;
-}
-.inv-item small{color:var(--muted);display:block;font-size:12px;margin-top:4px}
-
-/* total bar */
-.total-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-top:8px;
-  padding:8px;
-  background:linear-gradient(90deg,#fff,#fff0fb);
-  border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.03);
-}
-.total-bar .left{font-size:14px;color:var(--muted)}
-.total-bar .right{font-weight:800;font-size:18px;color:var(--accent-2)}
-
-/* bottom controls (sticky) */
-.bottom-controls{
-  position:fixed;
-  left:10px; right:10px; bottom:10px;
-  display:flex; gap:8px; align-items:center;
-  justify-content:space-between;
-  z-index:50;
-}
-.small-btn{
-  background:var(--panel); padding:10px;border-radius:12px; box-shadow:var(--card-shadow);
-  display:flex;align-items:center;gap:8px;border:none;font-weight:700;cursor:pointer;
-}
-.primary-btn{
-  background:linear-gradient(180deg,var(--accent),var(--accent-2));
-  color:white;padding:12px 16px;border-radius:14px;border:none;font-weight:800;box-shadow:0 6px 18px rgba(177,88,179,0.18);
-}
-
-/* categories scroller */
-.cat-scroll{
-  display:flex; gap:8px; overflow:auto; padding:10px 2px 2px 2px;
-  margin-top:6px;
-}
-.cat-btn{
-  min-width:96px; flex:0 0 auto; padding:10px 12px; border-radius:12px; background:linear-gradient(180deg,#fff,#fff0ff);
-  border:1px solid rgba(0,0,0,0.03); text-align:center; font-weight:700; cursor:pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-}
-.cat-btn.active{outline:3px solid rgba(196,98,182,0.12)}
-
-/* product grid (sheet) */
-.prod-sheet{
-  position:fixed; left:0; right:0; bottom:76px;
-  max-height:55vh; height:45vh; background:var(--panel); border-top-left-radius:16px; border-top-right-radius:16px;
-  box-shadow:0 -6px 18px rgba(0,0,0,0.08); padding:10px; overflow:auto; transform:translateY(0);
-  z-index:60;
-}
-.prod-grid{
-  display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
-}
-.prod-card{
-  background:linear-gradient(180deg,#fff,#fff7ff); padding:10px; border-radius:12px; text-align:center; cursor:pointer;
-  box-shadow:0 6px 14px rgba(0,0,0,0.04); font-weight:800; font-size:13px;
-}
-.prod-price{display:block;margin-top:6px;font-weight:700;color:var(--accent-2);font-size:12px}
-
-/* search box */
-.search-wrap{position:relative;margin-bottom:6px}
-#searchBar{width:100%;padding:10px;border-radius:10px;border:1px solid #e6d6e6;font-size:15px}
-.search-results{
-  position:absolute; left:0; right:0; top:44px; background:var(--panel); border-radius:10px; box-shadow:var(--card-shadow);
-  max-height:220px; overflow:auto; z-index:70; display:none;
-}
-.search-item{
-  padding:10px; border-bottom:1px solid #f2f2f2; display:flex; justify-content:space-between; align-items:center;
-}
-.search-item:last-child{border-bottom:none}
-.search-item button{background:var(--accent); color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700}
-
-/* small helpers */
-.empty-note{padding:18px;text-align:center;color:var(--muted);font-weight:600}
-.remove-btn{background:transparent;border:1px dashed #f4c; color:var(--danger); padding:6px 8px;border-radius:8px}
-
-/* invoice print hidden style - used when printing */
-@media print{
-  body *:not(.invoicePrint){display:none!important}
-  .invoicePrint{display:block!important}
-}
-
-/* responsive tweaks */
-@media(min-width:900px){
-  .prod-sheet{left:50%;transform:translateX(-50%);width:720px;border-radius:10px}
-  .prod-grid{grid-template-columns:repeat(4,1fr)}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POS بستنی‌فروشی عرفانه</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        body { font-family: Vazirmatn, sans-serif; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .category-active { border-bottom: 4px solid white; font-weight: bold; opacity: 1 !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800">
 
-<div class="header">کافه بستنی دویار — صندوق فروشگاهی (موبایل)</div>
-
-<div class="main">
-  <div class="top-row">
-    <div style="flex:1">
-      <div class="info-pill">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="text-align:left"><small>اقلام</small><br><strong id="cartCountTop">0</strong></div>
-          <div style="text-align:right"><small>جمع کل</small><br><strong id="cartTotalTop">0</strong> تومان</div>
+    <!-- هدر ثابت و چسبان -->
+    <div class="bg-gradient-to-l from-indigo-700 to-purple-600 text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="flex justify-between items-center mb-3">
+            <h1 class="text-lg font-bold flex items-center gap-1">بستنی عرفانه 🍦</h1>
+            <div class="flex items-center gap-2">
+                <button onclick="openReportModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3 py-2 rounded-xl font-bold transition">📊 گزارش فروش</button>
+                <div class="text-lg font-black bg-white/20 px-3 py-1 rounded-lg" id="total-price">0 تومان</div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div style="width:120px">
-      <div class="info-pill" id="currentTime">—</div>
-    </div>
-  </div>
 
-  <div class="search-wrap">
-    <input id="searchBar" placeholder="جستجو کن (مثلاً 'آب هویج' یا 'هویج')">
-    <div id="searchResults" class="search-results"></div>
-  </div>
-
-  <div class="invoice" id="invoice">
-    <div class="inv-row header">
-      <div style="width:48%;">محصول</div>
-      <div style="width:18%;text-align:center">تعداد</div>
-      <div style="width:22%;text-align:left">جمع</div>
-    </div>
-    <div id="invList"></div>
-    <div id="emptyNote" class="empty-note">سبد خرید خالی است — از پایین دسته را انتخاب کن و محصولات را اضافه کن</div>
-  </div>
-
-  <div class="total-bar" style="margin-top:8px">
-    <div class="left">تعداد آیتم‌ها: <span id="itemsCount">0</span></div>
-    <div class="right" id="totalSum">0 تومان</div>
-  </div>
-
-  <div class="cat-scroll" id="catScroll"></div>
-
-</div>
-
-<!-- product sheet (bottom) -->
-<div class="prod-sheet" id="prodSheet" aria-hidden="true" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-    <div style="font-weight:800">محصولات</div>
-    <div><button class="small-btn" id="closeProducts">بستن</button></div>
-  </div>
-  <div class="prod-grid" id="prodGrid"></div>
-</div>
-
-<!-- bottom controls -->
-<div class="bottom-controls">
-  <div style="display:flex;gap:8px;flex:1">
-    <button class="small-btn" id="emptyCartBtnMobile">🗑 خالی</button>
-    <button class="small-btn" id="printBtnMobile">🖨 چاپ</button>
-    <button class="small-btn" id="clearSearch">✖ جستجو</button>
-  </div>
-  <div>
-    <button class="primary-btn" id="checkoutBtn">ثبت فاکتور</button>
-  </div>
-</div>
-
-<!-- hidden invoice print area -->
-<div class="invoicePrint" id="invoicePrint" style="display:none">
-  <div style="text-align:center;font-weight:800;font-size:20px">کافه بستنی دویار</div>
-  <hr>
-  <div id="printBody"></div>
-  <hr>
-  <div>جمع کل: <strong id="printTotal"></strong> تومان</div>
-  <div style="margin-top:12px">تاریخ: <span id="printDate"></span></div>
-</div>
-
-<script>
-// ====== داده‌ها (محصولات تو دسته‌ها) ======
-const productsData = [
-  {name:"بستنی سنتی بدون مغز",price:220000,category:"بستنی‌ها"},
-  {name:"بستنی سنتی مغزدار",price:260000,category:"بستنی‌ها"},
-  {name:"بستنی سنتی لیوانی",price:40000,category:"بستنی‌ها"},
-  {name:"طالبی بستنی",price:70000,category:"بستنی‌ها"},
-  {name:"آب هویج بستنی",price:60000,category:"بستنی‌ها"},
-  {name:"بستنی اسکوپی",price:25000,category:"بستنی‌ها"},
-  {name:"بستنی قیفی وانیلی",price:35000,category:"بستنی‌ها"},
-  {name:"بستنی قیفی وانیل کاکائو",price:40000,category:"بستنی‌ها"},
-  {name:"بستنی دستگاهی لیوان بزرگ",price:50000,category:"بستنی‌ها"},
-  {name:"بستنی دستگاهی لیوان کوچک",price:40000,category:"بستنی‌ها"},
-  {name:"فالوده",price:50000,category:"فالوده"},
-  {name:"فالوده بستنی",price:70000,category:"فالوده"},
-  {name:"آب هویج",price:40000,category:"آبمیوه"},
-  {name:"آب انار",price:90000,category:"آبمیوه"},
-  {name:"آب زرشک",price:90000,category:"آبمیوه"},
-  {name:"آب سیب",price:70000,category:"آبمیوه"},
-  {name:"آب طالبی",price:60000,category:"آبمیوه"},
-  {name:"آب هندوانه",price:60000,category:"آبمیوه"},
-  {name:"آب آلبالو",price:60000,category:"آبمیوه"},
-  {name:"آب پرتغال",price:80000,category:"آبمیوه"},
-  {name:"شیر موز",price:80000,category:"شیرها و شیک‌ها"},
-  {name:"شیر موز خرما",price:120000,category:"شیرها و شیک‌ها"},
-  {name:"شیر موز گردو",price:150000,category:"شیرها و شیک‌ها"},
-  {name:"شیر پسته",price:150000,category:"شیرها و شیک‌ها"},
-  {name:"شیر انبه",price:180000,category:"شیرها و شیک‌ها"},
-  {name:"شیر موز بستنی",price:100000,category:"شیرها و شیک‌ها"},
-  {name:"شیک",price:120000,category:"شیرها و شیک‌ها"},
-  {name:"آیس پک",price:120000,category:"شیرها و شیک‌ها"},
-  {name:"معجون لیوانی",price:160000,category:"معجون و کیک بستنی"},
-  {name:"معجون کاسه‌ای کوچک",price:180000,category:"معجون و کیک بستنی"},
-  {name:"معجون کاسه‌ای بزرگ",price:250000,category:"معجون و کیک بستنی"},
-  {name:"کیک بستنی لیوانی",price:70000,category:"معجون و کیک بستنی"},
-  {name:"کیک بستنی مخصوص",price:150000,category:"معجون و کیک بستنی"},
-  {name:"ذرت مکزیکی کوچک",price:90000,category:"ذرت‌ها"},
-  {name:"ذرت مکزیکی بزرگ",price:130000,category:"ذرت‌ها"},
-  {name:"کیک شکلاتی",price:90000,category:"متفرقه"},
-  {name:"آب معدنی کوچک",price:10000,category:"متفرقه"},
-  {name:"آب معدنی بزرگ",price:15000,category:"متفرقه"},
-  {name:"لایف",price:50000,category:"متفرقه"},
-  {name:"هایپ",price:60000,category:"متفرقه"},
-  {name:"کینگ",price:45000,category:"متفرقه"},
-  {name:"کرونا",price:150000,category:"متفرقه"},
-  {name:"ویتامین سی",price:40000,category:"متفرقه"},
-  {name:"نوشیدنی گیاهی",price:40000,category:"متفرقه"},
-  {name:"نوشیدنی گیاهی زعفرانی",price:45000,category:"متفرقه"},
-  {name:"آیس مانکی",price:50000,category:"متفرقه"},
-  {name:"آلوورا",price:42000,category:"متفرقه"},
-  {name:"لیموناد شیشه ای",price:35000,category:"متفرقه"},
-  {name:"بطری ۱ لیتری آب هویج",price:80000,category:"بطری‌ها"},
-  {name:"بطری ۱ لیتری آب طالبی",price:140000,category:"بطری‌ها"},
-  {name:"بطری ۱ لیتری آب سیب",price:180000,category:"بطری‌ها"},
-  {name:"بطری ۱ لیتری آب هندوانه",price:120000,category:"بطری‌ها"},
-  {name:"بطری ۱ لیتری آب پرتغال",price:200000,category:"بطری‌ها"},
-  {name:"بطری ۱ لیتری شیر موز",price:180000,category:"بطری‌ها"}
-];
-
-// ====== حالت و ذخیره محلی ======
-const categories = [...new Set(productsData.map(p=>p.category))];
-let cart = []; // {name, price, qty, category}
-const LS_KEY = 'doyaar_cart_v1';
-
-// المنت‌ها
-const catScroll = document.getElementById('catScroll');
-const prodSheet = document.getElementById('prodSheet');
-const prodGrid = document.getElementById('prodGrid');
-const closeProducts = document.getElementById('closeProducts');
-const searchBar = document.getElementById('searchBar');
-const searchResults = document.getElementById('searchResults');
-const invList = document.getElementById('invList');
-const emptyNote = document.getElementById('emptyNote');
-const totalSum = document.getElementById('totalSum');
-const itemsCount = document.getElementById('itemsCount');
-const cartCountTop = document.getElementById('cartCountTop');
-const cartTotalTop = document.getElementById('cartTotalTop');
-const printBtnMobile = document.getElementById('printBtnMobile');
-const emptyCartBtnMobile = document.getElementById('emptyCartBtnMobile');
-const checkoutBtn = document.getElementById('checkoutBtn');
-const clearSearchBtn = document.getElementById('clearSearch');
-const closeBtn = document.getElementById('closeProducts');
-
-// زمان فعلی
-function updateTime(){ document.getElementById('currentTime').textContent = new Date().toLocaleTimeString(); }
-setInterval(updateTime,1000); updateTime();
-
-// لود از localStorage
-function loadCart(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw) cart = JSON.parse(raw);
-    else cart=[];
-  }catch(e){cart=[];}
-  updateCartUI();
-}
-
-// سیو به localStorage
-function saveCart(){ localStorage.setItem(LS_KEY, JSON.stringify(cart)); }
-
-// افزودن محصول به سبد
-function addToCartByObj(product){
-  const found = cart.find(it=>it.name === product.name);
-  if(found) found.qty++;
-  else cart.push({...product, qty:1});
-  saveCart(); updateCartUI();
-}
-
-// حذف از سبد کامل
-function removeFromCart(name){
-  cart = cart.filter(it=>it.name !== name);
-  saveCart(); updateCartUI();
-}
-
-// کم کردن
-function decrement(name){
-  const it = cart.find(x=>x.name===name);
-  if(!it) return;
-  it.qty--;
-  if(it.qty <= 0) removeFromCart(name);
-  else { saveCart(); updateCartUI(); }
-}
-
-// (جمع) افزایش
-function increment(name){
-  const it = cart.find(x=>x.name===name);
-  if(!it) return;
-  it.qty++;
-  saveCart(); updateCartUI();
-}
-
-// محاسبه و رندر سبد
-function updateCartUI(){
-  invList.innerHTML='';
-  if(cart.length === 0){
-    emptyNote.style.display='block';
-  } else {
-    emptyNote.style.display='none';
-    cart.forEach(it=>{
-      const row = document.createElement('div');
-      row.className = 'inv-item';
-      row.innerHTML = `
-        <div style="width:48%"><div class="name">${escapeHtml(it.name)}</div><small>${it.category}</small></div>
-        <div style="width:18%;text-align:center">
-          <div class="qty-controls" style="display:flex;justify-content:center;align-items:center">
-            <button data-name="${escapeHtml(it.name)}" class="dec">-</button>
-            <span style="padding:0 6px;font-weight:800">${it.qty}</span>
-            <button data-name="${escapeHtml(it.name)}" class="inc">+</button>
-          </div>
+        <!-- نوار سرچ هوشمند -->
+        <div class="relative mb-3">
+            <input type="text" id="search-input" oninput="handleSearch()" placeholder="جستجوی سریع محصول... (مثال: شیر موز)" 
+                   class="w-full py-2.5 px-4 pr-10 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm">
+            <span class="absolute left-3 top-3 text-gray-400">🔍</span>
         </div>
-        <div style="width:22%;text-align:left">${numberWithCommas(it.price * it.qty)} تومان</div>
-      `;
-      invList.appendChild(row);
-      // event delegation handled below
-    });
-  }
+        
+        <!-- منوی دسته‌بندی -->
+        <div class="flex gap-4 overflow-x-auto no-scrollbar py-1 text-sm" id="category-menu">
+            <button onclick="filterCategory('آبمیوه')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-آبمیوه">آبمیوه‌ها</button>
+            <button onclick="filterCategory('معجون')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-معجون">معجون‌ها</button>
+            <button onclick="filterCategory('بستنی')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-بستنی">بستنی و فالوده</button>
+            <button onclick="filterCategory('قهوه')" class="cat-btn pb-1 whitespace-nowrap opacity-80" id="cat-قهوه">نوشیدنی گرم</button>
+        </div>
+    </div>
 
-  const total = cart.reduce((s,i)=>s + i.price * i.qty, 0);
-  const items = cart.reduce((s,i)=>s + i.qty, 0);
-  totalSum.textContent = numberWithCommas(total) + ' تومان';
-  itemsCount.textContent = items;
-  cartCountTop.textContent = items;
-  cartTotalTop.textContent = numberWithCommas(total);
-  saveCart();
-}
+    <!-- بدنه اصلی برنامه -->
+    <div class="p-4 pb-44">
+        <!-- کانتینر محصولات -->
+        <div id="menu-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-8"></div>
 
-// escape برای محتواهای HTML
-function escapeHtml(s){ return (''+s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+        <!-- فاکتور فروش -->
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+            <h2 class="text-xs font-bold text-gray-400 mb-3 tracking-wider">سبد خرید جاری:</h2>
+            <div id="cart-list" class="space-y-3"></div>
+        </div>
+    </div>
 
-// نمایش محصولات یک دسته در پنجره پایین
-function openCategory(cat){
-  prodGrid.innerHTML = '';
-  const list = productsData.filter(p=>p.category === cat);
-  list.forEach(p=>{
-    const card = document.createElement('button');
-    card.className='prod-card';
-    card.innerHTML = `<div>${escapeHtml(p.name)}</div><div class="prod-price">${numberWithCommas(p.price)} تومان</div>`;
-    card.addEventListener('click', ()=> {
-      addToCartByObj(p);
-      // افکت کوتاه
-      card.style.transform='scale(0.98)';
-      setTimeout(()=>card.style.transform='scale(1)',120);
-    });
-    prodGrid.appendChild(card);
-  });
-  prodSheet.style.display='block';
-  prodSheet.setAttribute('aria-hidden','false');
-  setTimeout(()=>prodSheet.style.bottom='76px',10);
-}
+    <!-- پنل دکمه‌های عملیاتی ثابت پایین -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t flex gap-3 shadow-2xl z-40">
+        <button onclick="clearCart()" class="flex-1 bg-red-50 text-red-600 py-3.5 rounded-2xl font-bold active:scale-95 transition">خالی کردن</button>
+        <button onclick="submitOrder()" class="flex-[2] bg-indigo-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-100 active:scale-95 transition">ثبت و چاپ</button>
+    </div>
 
-// بستن پنجره محصولات
-closeBtn.addEventListener('click', ()=>{ prodSheet.style.display='none'; prodSheet.setAttribute('aria-hidden','true'); });
+    <!-- مودال گزارش فروش روزانه (پاپ‌آپ) -->
+    <div id="report-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800">گزارش فروش امروز 📈</h3>
+                <button onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">×</button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+                <!-- کارت‌های وضعیت سریع -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-indigo-50 p-4 rounded-2xl text-center">
+                        <span class="text-xs text-indigo-500 block mb-1">کل فروش روز</span>
+                        <span class="font-black text-indigo-700 text-lg" id="rep-total-sales">0 تومان</span>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-2xl text-center">
+                        <span class="text-xs text-purple-500 block mb-1">تعداد فاکتورها</span>
+                        <span class="font-black text-purple-700 text-lg" id="rep-invoice-count">0</span>
+                    </div>
+                </div>
 
-// رندر دسته‌ها (اسکرول افقی)
-function renderCategories(){
-  catScroll.innerHTML='';
-  categories.forEach(cat=>{
-    const b = document.createElement('button');
-    b.className='cat-btn';
-    b.textContent = cat;
-    b.addEventListener('click', ()=> {
-      // active visual
-      Array.from(catScroll.children).forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
-      openCategory(cat);
-    });
-    catScroll.appendChild(b);
-  });
-}
+                <!-- جزئیات اقلام فروخته شده -->
+                <div>
+                    <h4 class="text-xs font-bold text-gray-400 mb-2">جزئیات فروش به تفکیک محصول:</h4>
+                    <div id="rep-items-list" class="space-y-2 max-h-[30vh] overflow-y-auto">
+                        <!-- اقلام به صورت دینامیک اینجا اضافه می‌شوند -->
+                    </div>
+                </div>
+            </div>
 
-// جستجو (هایلایت) — نگه داشتن لیست باز بعد از اضافه کردن
-function highlight(text, query){
-  if(!query) return escapeHtml(text);
-  try{
-    const q = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    const re = new RegExp('('+q+')','gi');
-    return escapeHtml(text).replace(re, `<span class="highlight">$1</span>`);
-  }catch(e){
-    return escapeHtml(text);
-  }
-}
+            <!-- دکمه‌های مودال -->
+            <div class="border-t pt-4 mt-4 flex gap-2">
+                <button onclick="resetDailySales()" class="flex-1 bg-red-100 hover:bg-red-200 text-red-600 py-3 rounded-2xl font-bold text-sm transition">صفر کردن صندوق</button>
+                <button onclick="closeReportModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm transition">بستن پنجره</button>
+            </div>
+        </div>
+    </div>
 
-// رندر نتایج جستجو
-let lastSearch = '';
-searchBar.addEventListener('input', ()=>{
-  const valRaw = searchBar.value.trim();
-  const val = valRaw.replace(/آ/g,'ا');
-  lastSearch = valRaw;
-  if(!val){ searchResults.style.display='none'; return; }
-  const filtered = productsData.filter(p=> p.name.replace(/آ/g,'ا').includes(val) );
-  searchResults.innerHTML='';
-  filtered.forEach(p=>{
-    const div = document.createElement('div');
-    div.className='search-item';
-    const left = document.createElement('div');
-    left.innerHTML = `${highlight(p.name, valRaw)} <div style="font-size:12px;color:#999;margin-top:4px">${p.category} — ${numberWithCommas(p.price)} تومان</div>`;
-    const btn = document.createElement('button');
-    btn.textContent = '+';
-    btn.addEventListener('click', (e)=>{
-      addToCartByObj(p);
-      // فقط فیلد خالی شود اما لیست باز بماند
-      searchBar.value = '';
-      lastSearch='';
-      // maintain results: recompute (will likely show none)
-      searchResults.style.display = 'none';
-      searchResults.innerHTML='';
-      searchBar.focus();
-    });
-    div.appendChild(left);
-    div.appendChild(btn);
-    searchResults.appendChild(div);
-  });
-  searchResults.style.display = filtered.length ? 'block' : 'none';
-});
+    <script>
+        // دیتابیس محصولات عرفانه
+        const myProducts = [
+            // آبمیوه‌ها
+            { id: 1, cat: 'آبمیوه', name: 'آب هویج', price: 60000, emoji: '🥕', color: 'orange' },
+            { id: 2, cat: 'آبمیوه', name: 'آب هویج بستنی', price: 90000, emoji: '🥕🍦', color: 'orange' },
+            { id: 3, cat: 'آبمیوه', name: 'آب طالبی', price: 100000, emoji: '🍈', color: 'green' },
+            { id: 4, cat: 'آبمیوه', name: 'آب طالبی بستنی', price: 120000, emoji: '🍈🍦', color: 'green' },
+            { id: 5, cat: 'آبمیوه', name: 'آب کرفس', price: 80000, emoji: '🌿', color: 'green' },
+            { id: 6, cat: 'آبمیوه', name: 'آب هندوانه', price: 100000, emoji: '🍉', color: 'red' },
+            { id: 7, cat: 'آبمیوه', name: 'آب انار', price: 120000, emoji: '🍎', color: 'red' },
+            { id: 8, cat: 'آبمیوه', name: 'آب آلبالو', price: 120000, emoji: '🍒', color: 'red' },
+            { id: 9, cat: 'آبمیوه', name: 'آب زرشک', price: 120000, emoji: '🍇', color: 'red' },
+            { id: 10, cat: 'آبمیوه', name: 'آب پرتقال', price: 120000, emoji: '🍊', color: 'orange' },
+            { id: 11, cat: 'آبمیوه', name: 'آب سیب', price: 120000, emoji: '🍎', color: 'green' },
 
-// پاک کردن جستجو
-clearSearchBtn.addEventListener('click', ()=>{
-  searchBar.value=''; searchResults.style.display='none'; lastSearch='';
-});
+            // معجون‌ها
+            { id: 12, cat: 'معجون', name: 'معجون بزرگ', price: 420000, emoji: '🍯', color: 'amber' },
+            { id: 13, cat: 'معجون', name: 'معجون کوچک', price: 340000, emoji: '🍯', color: 'amber' },
+            { id: 14, cat: 'معجون', name: 'معجون لیوانی', price: 270000, emoji: '🥤', color: 'amber' },
+            { id: 15, cat: 'معجون', name: 'شیر موز', price: 130000, emoji: '🍌', color: 'yellow' },
+            { id: 16, cat: 'معجون', name: 'شیر موز بستنی', price: 150000, emoji: '🍌🍦', color: 'yellow' },
+            { id: 17, cat: 'معجون', name: 'شیر پسته', price: 270000, emoji: '🥜', color: 'green' },
+            { id: 18, cat: 'معجون', name: 'شیر موز خرما', price: 190000, emoji: '🌴', color: 'yellow' },
+            { id: 19, cat: 'معجون', name: 'شیر موز گردو', price: 190000, emoji: '🥥', color: 'yellow' },
+            { id: 20, cat: 'معجون', name: 'شیر انبه', price: 200000, emoji: '🥭', color: 'orange' },
 
-// تعامل روی آیتم‌های سبد (رویداد delegate)
-invList.addEventListener('click', function(e){
-  const t = e.target;
-  if(t.matches('button.dec')){
-    const name = t.getAttribute('data-name');
-    decrement(name);
-  } else if(t.matches('button.inc')){
-    const name = t.getAttribute('data-name');
-    increment(name);
-  }
-});
+            // بستنی و فالوده
+            { id: 21, cat: 'بستنی', name: 'قیفی وانیلی', price: 60000, emoji: '🍦', color: 'blue' },
+            { id: 22, cat: 'بستنی', name: 'قیفی کاکائو', price: 60000, emoji: '🍦🤎', color: 'blue' },
+            { id: 23, cat: 'بستنی', name: 'قیفی لیوان بزرگ', price: 80000, emoji: '🍧', color: 'blue' },
+            { id: 24, cat: 'بستنی', name: 'قیفی لیوان کوچک', price: 70000, emoji: '🍨', color: 'blue' },
+            { id: 25, cat: 'بستنی', name: 'آفوگاتو', price: 130000, emoji: '☕🍦', color: 'stone' },
+            { id: 26, cat: 'بستنی', name: 'فالوده', price: 120000, emoji: '🥣', color: 'sky' },
+            { id: 27, cat: 'بستنی', name: 'فالوده بستنی', price: 150000, emoji: '🥣🍦', color: 'sky' },
+            { id: 28, cat: 'بستنی', name: 'کیک بستنی مخصوص', price: 260000, emoji: '🍰', color: 'pink' },
+            { id: 29, cat: 'بستنی', name: 'کیک بستنی لیوانی', price: 100000, emoji: '🧁', color: 'pink' },
+            { id: 30, cat: 'بستنی', name: 'سنتی کیلویی', price: 420000, emoji: '🥡', color: 'yellow' },
+            { id: 31, cat: 'بستنی', name: 'سنتی مغزدار', price: 480000, emoji: '🥡🥜', color: 'yellow' },
+            { id: 32, cat: 'بستنی', name: 'بستنی سنتی لیوانی', price: 70000, emoji: '🍨', color: 'yellow' },
+            { id: 33, cat: 'بستنی', name: 'بستنی حصیری', price: 70000, emoji: '🧇', color: 'yellow' },
+            { id: 34, cat: 'بستنی', name: 'بستنی اسکوپ', price: 50000, emoji: '🥄', color: 'pink' },
+            { id: 35, cat: 'بستنی', name: 'ایس پک و شیک', price: 190000, emoji: '🥤', color: 'purple' },
 
-// عملیات چاپ (پنجره‌ی چاپ)
-printBtnMobile.addEventListener('click', ()=>{
-  const printBody = document.getElementById('printBody');
-  printBody.innerHTML = '';
-  if(cart.length===0){ alert('سبد خرید خالی است'); return; }
-  cart.forEach(it=>{
-    const p = document.createElement('div');
-    p.style.display='flex';
-    p.style.justifyContent='space-between';
-    p.style.marginBottom='6px';
-    p.innerHTML = `<div>${escapeHtml(it.name)} x${it.qty}</div><div>${numberWithCommas(it.price*it.qty)} تومان</div>`;
-    printBody.appendChild(p);
-  });
-  document.getElementById('printTotal').textContent = numberWithCommas(cart.reduce((s,i)=>s+i.qty*i.price,0));
-  document.getElementById('printDate').textContent = new Date().toLocaleString();
-  // استفاده از iframe برای چاپ بهتر موبایل/دسکتاپ
-  const printContent = document.getElementById('invoicePrint').innerHTML;
-  const newWin = window.open('','_blank','width=400,height=600');
-  newWin.document.write('<html><head><meta charset="utf-8"><title>رسید</title></head><body style="font-family:sans-serif;padding:12px">'+printContent+'</body></html>');
-  newWin.document.close();
-  setTimeout(()=>{ newWin.focus(); newWin.print(); /* newWin.close(); */ },500);
-});
+            // قهوه و گرم
+            { id: 36, cat: 'قهوه', name: 'سینگل', price: 60000, emoji: '☕', color: 'stone' },
+            { id: 37, cat: 'قهوه', name: 'دبل', price: 70000, emoji: '☕☕', color: 'stone' },
+            { id: 38, cat: 'قهوه', name: 'هات چاکلت', price: 130000, emoji: '🍫', color: 'brown' },
+            { id: 39, cat: 'قهوه', name: 'کاپوچینو', price: 120000, emoji: '🥛☕', color: 'orange' },
+            { id: 40, cat: 'قهوه', name: 'چای ماسالا', price: 120000, emoji: '🍵', color: 'orange' },
+            { id: 41, cat: 'قهوه', name: 'نسکافه', price: 120000, emoji: '☕', color: 'stone' },
+            { id: 42, cat: 'قهوه', name: 'لاته', price: 110000, emoji: '🍶', color: 'stone' },
+            { id: 43, cat: 'قهوه', name: 'آیس لاته', price: 130000, emoji: '🧊☕', color: 'blue' },
+            { id: 44, cat: 'قهوه', name: 'آمریکانو', price: 120000, emoji: '☕', color: 'stone' },
+            { id: 45, cat: 'قهوه', name: 'آیس آمریکانو', price: 130000, emoji: '🧊', color: 'blue' },
+            { id: 46, cat: 'قهوه', name: 'کارامل ماکیاتو', price: 150000, emoji: '🍯☕', color: 'orange' },
+            { id: 47, cat: 'قهوه', name: 'موکا', price: 130000, emoji: '🍫☕', color: 'brown' },
+            { id: 48, cat: 'قهوه', name: 'شیر کاکائو', price: 90000, emoji: '🥛', color: 'brown' }
+        ];
 
-// خالی کردن سبد
-emptyCartBtnMobile.addEventListener('click', ()=>{
-  cart = []; saveCart(); updateCartUI();
-});
+        let cart = [];
+        let currentCategory = 'آبمیوه';
+        let searchQuery = '';
 
-// ثبت فاکتور (شبیه کردن ثبت)
-checkoutBtn.addEventListener('click', ()=>{
-  if(cart.length===0){ alert('سبد خرید خالی است'); return; }
-  // ساخت شماره فاکتور ساده
-  const invoiceNo = 'F' + Date.now().toString().slice(-6);
-  // برای ساده‌سازی: فقط پاکسازی و چاپ
-  printBtnMobile.click();
-  cart = [];
-  saveCart();
-  updateCartUI();
-  alert('فاکتور ثبت شد — شماره: ' + invoiceNo);
-});
+        // آبجکت فروش روزانه (بارگذاری از LocalStorage یا مقدار اولیه)
+        let dailySales = JSON.parse(localStorage.getItem('erfane_pos_sales')) || {
+            totalAmount: 0,
+            invoiceCount: 0,
+            soldItems: {} // ذخیره به فرمت { "شیر موز": 5, "آب هویج": 2 }
+        };
 
-// تعداد با کاما
-function numberWithCommas(x){
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
+        // ذخیره تغییرات صندوق در حافظه مرورگر
+        function saveToLocalStorage() {
+            localStorage.setItem('erfane_pos_sales', JSON.stringify(dailySales));
+        }
 
-// init
-renderCategories();
-loadCart();
+        // فیلتر کردن دسته‌بندی‌ها
+        function filterCategory(cat) {
+            currentCategory = cat;
+            searchQuery = ''; 
+            document.getElementById('search-input').value = '';
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('category-active'));
+            document.getElementById('cat-' + cat).classList.add('category-active');
+            renderMenu();
+        }
 
-// برای دسترسی: باز کردن اولین دسته خودکار (اختیاری)
-// openCategory(categories[0]); document.querySelector('.cat-btn')?.classList.add('active');
+        // فیلتر کردن بر اساس سرچ
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.trim();
+            if (searchQuery.length > 0) {
+                document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('category-active'));
+            } else {
+                document.getElementById('cat-' + currentCategory).classList.add('category-active');
+            }
+            renderMenu();
+        }
 
-</script>
+        // رندر کردن منو
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            let filtered = [];
+
+            if (searchQuery.length > 0) {
+                filtered = myProducts.filter(p => p.name.includes(searchQuery));
+            } else {
+                filtered = myProducts.filter(p => p.cat === currentCategory);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8 text-sm">محصولی پیدا نشد 😕</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => {
+                const cartItem = cart.find(item => item.id === p.id);
+                const qty = cartItem ? cartItem.qty : 0;
+                
+                return `
+                    <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between items-center transition-all ${qty > 0 ? 'ring-2 ring-indigo-500 bg-indigo-50/20' : ''}">
+                        <div class="flex flex-col items-center pointer-events-none">
+                            <span class="text-3xl mb-1">${p.emoji}</span>
+                            <span class="font-bold text-[13px] text-center leading-tight h-8 flex items-center">${p.name}</span>
+                            <span class="text-[10px] mt-1 text-gray-400">${p.price.toLocaleString()} تومان</span>
+                        </div>
+                        <div class="flex items-center gap-3 mt-3 w-full justify-center">
+                            ${qty > 0 ? `
+                                <button onclick="changeQty(${p.id}, -1)" class="w-7 h-7 bg-red-100 text-red-600 rounded-full font-black text-lg flex items-center justify-center active:scale-90 transition">-</button>
+                                <span class="font-bold text-sm text-indigo-700">${qty}</span>
+                                <button onclick="changeQty(${p.id}, 1)" class="w-7 h-7 bg-indigo-100 text-indigo-600 rounded-full font-black text-lg flex items-center justify-center active:scale-90 transition">+</button>
+                            ` : `
+                                <button onclick="changeQty(${p.id}, 1)" class="w-full py-1 px-3 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold active:scale-95 transition-all">+ افزودن</button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // تغییر تعداد در سبد خرید
+        function changeQty(id, amount) {
+            const product = myProducts.find(p => p.id === id);
+            const cartItem = cart.find(item => item.id === id);
+
+            if (cartItem) {
+                cartItem.qty += amount;
+                if (cartItem.qty <= 0) {
+                    cart = cart.filter(item => item.id !== id);
+                }
+            } else if (amount > 0) {
+                cart.push({ ...product, qty: 1 });
+            }
+
+            renderMenu();
+            renderCart();
+        }
+
+        // رندر فاکتور سبد خرید
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            const totalDisplay = document.getElementById('total-price');
+            let total = 0;
+
+            if (cart.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-300 py-4 text-sm">هیچ آیتمی انتخاب نشده است.</p>';
+                totalDisplay.innerText = "0 تومان";
+                return;
+            }
+
+            list.innerHTML = cart.map((item) => {
+                total += (item.price * item.qty);
+                return `
+                    <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm">${item.name}</span>
+                            <span class="text-xs text-gray-400">${item.qty} عدد × ${item.price.toLocaleString()}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-black text-indigo-600 text-sm">${(item.price * item.qty).toLocaleString()}</span>
+                            <div class="flex items-center gap-1 bg-white border rounded-lg p-0.5">
+                                <button onclick="changeQty(${item.id}, -1)" class="w-6 h-6 text-red-500 rounded flex items-center justify-center font-bold">-</button>
+                                <span class="px-2 text-xs font-bold">${item.qty}</span>
+                                <button onclick="changeQty(${item.id}, 1)" class="w-6 h-6 text-green-500 rounded flex items-center justify-center font-bold">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            totalDisplay.innerText = total.toLocaleString() + " تومان";
+        }
+
+        function clearCart() {
+            if(confirm('آیا مطمئنی که می‌خوای سبد خرید رو کاملاً خالی کنی؟')) {
+                cart = [];
+                renderMenu();
+                renderCart();
+            }
+        }
+        
+        // ثبت نهایی سفارش و اضافه کردن به فروش روزانه
+        function submitOrder() {
+            if (cart.length === 0) return;
+
+            let invoiceTotal = 0;
+            
+            // اضافه کردن اقلام سبد خرید جاری به تاریخچه فروش روزانه
+            cart.forEach(item => {
+                invoiceTotal += (item.price * item.qty);
+                
+                if (dailySales.soldItems[item.name]) {
+                    dailySales.soldItems[item.name] += item.qty;
+                } else {
+                    dailySales.soldItems[item.name] = item.qty;
+                }
+            });
+
+            dailySales.totalAmount += invoiceTotal;
+            dailySales.invoiceCount += 1;
+
+            saveToLocalStorage(); // ذخیره در کش مرورگر
+
+            alert(`سفارش با موفقیت ثبت شد! ✅\nمبلغ فاکتور: ${invoiceTotal.toLocaleString()} تومان`);
+            
+            // بازنشانی سبد خرید
+            cart = [];
+            renderMenu();
+            renderCart();
+        }
+
+        // مدیریت باز و بسته کردن مودال گزارش
+        function openReportModal() {
+            document.getElementById('rep-total-sales').innerText = dailySales.totalAmount.toLocaleString() + " تومان";
+            document.getElementById('rep-invoice-count').innerText = dailySales.invoiceCount;
+
+            const listContainer = document.getElementById('rep-items-list');
+            const items = Object.entries(dailySales.soldItems);
+
+            if (items.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-gray-300 py-4 text-xs">امروز هنوز فروشی ثبت نشده است.</p>';
+            } else {
+                listContainer.innerHTML = items.map(([name, qty]) => `
+                    <div class="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-xl text-xs">
+                        <span class="font-bold text-gray-700">${name}</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-lg font-black">${qty} عدد</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        // صفر کردن صندوق روزانه
+        function resetDailySales() {
+            if (confirm('عرفانه جان، مطمئنی می‌خوای صندوق رو صفر کنی؟ کل آمارهای فروش امروز پاک میشه.')) {
+                dailySales = { totalAmount: 0, invoiceCount: 0, soldItems: {} };
+                saveToLocalStorage();
+                openReportModal(); // رفرش کردن ویو گزارش
+            }
+        }
+
+        // لود اولیه برنامه
+        filterCategory('آبمیوه');
+        renderCart();
+    </script>
 </body>
 </html>
